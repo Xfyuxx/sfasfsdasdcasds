@@ -1,96 +1,58 @@
--- 🔰 Load Rayfield UI
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+--// 🛠️ GUI Setup
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "SultanUI"
 
--- 🪟 Create UI Window
-local Window = Rayfield:CreateWindow({
-	Name = "🗼 Climb & Jump - GG SULTAN UI",
-	LoadingTitle = "GG SULTAN MODE",
-	LoadingSubtitle = "by Keenn & ChatGPT 😎",
-	ConfigurationSaving = {
-		Enabled = true,
-		FolderName = nil,
-		FileName = "TowerSultanSettings"
-	},
-})
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 300, 0, 220)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -110)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.Active = true
+Frame.Draggable = true
 
--- 🎮 Main Tab
-local MainTab = Window:CreateTab("🎮 Main", 4483362458)
+local function makeButton(text, posY, callback)
+	local btn = Instance.new("TextButton", Frame)
+	btn.Size = UDim2.new(1, -20, 0, 40)
+	btn.Position = UDim2.new(0, 10, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Text = text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.MouseButton1Click:Connect(callback)
+end
 
--- ⛰️ Auto Climb & Jump
-MainTab:CreateToggle({
-	Name = "Auto Climb & Jump",
-	CurrentValue = false,
-	Callback = function(Value)
-		_G.AutoClimb = Value
-		while _G.AutoClimb do
-			task.wait(0.1)
-			local h = game.Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
-			if h and h.MoveDirection.Magnitude < 0.1 then
-				h:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end
-	end,
-})
-
--- 🚀 Teleport ke Puncak
-MainTab:CreateButton({
-	Name = "Teleport ke Puncak",
-	Callback = function()
-		local char = game.Players.LocalPlayer.Character
-		if char then
-			char:MoveTo(Vector3.new(0, 9999, 0)) -- Ganti Y sesuai map kalau perlu
-		end
-	end,
-})
-
--- 🛡️ Anti-AFK
-MainTab:CreateButton({
-	Name = "Aktifkan Anti-AFK",
-	Callback = function()
-		local vu = game:GetService("VirtualUser")
-		game:GetService("Players").LocalPlayer.Idled:Connect(function()
-			vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-			task.wait(1)
-			vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-		end)
-	end,
-})
-
--- 📊 Stats Tracker
-MainTab:CreateParagraph({
-	Title = "📊 Live Stats",
-	Content = "Wins & Coins tampil di bawah!"
-})
-
-local statsLabel = MainTab:CreateParagraph({
-	Title = "🎯 Current Status",
-	Content = "Loading..."
-})
-
-task.spawn(function()
-	while true do
-		task.wait(1)
-		local stats = game.Players.LocalPlayer:FindFirstChild("leaderstats")
-		if stats then
-			local coins = stats:FindFirstChild("Coins")
-			local wins = stats:FindFirstChild("Wins")
-			statsLabel:Set("🪙 Coins: " .. (coins and coins.Value or "?") ..
-			              "\n🏆 Wins: " .. (wins and wins.Value or "?"))
+--// 🔄 Auto Climb & Jump
+local autoClimb = false
+makeButton("🔁 Toggle Auto Climb", 10, function()
+	autoClimb = not autoClimb
+	while autoClimb do
+		task.wait(0.1)
+		local h = game.Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+		if h and h.MoveDirection.Magnitude < 0.1 then
+			h:ChangeState(Enum.HumanoidStateType.Jumping)
 		end
 	end
 end)
 
--- 🧰 Toggle UI Visibility with RightShift
-local UIS = game:GetService("UserInputService")
-local UIVisible = true
-
-UIS.InputBegan:Connect(function(input, gameProcessed)
-	if input.KeyCode == Enum.KeyCode.RightShift and not gameProcessed then
-		UIVisible = not UIVisible
-		for _, gui in pairs(game.CoreGui:GetChildren()) do
-			if gui.Name:find("Rayfield") then
-				gui.Enabled = UIVisible
-			end
-		end
+--// 🚀 Teleport ke Puncak
+makeButton("🚀 Teleport ke Puncak", 60, function()
+	local char = game.Players.LocalPlayer.Character
+	if char then
+		char:MoveTo(Vector3.new(0, 9999, 0)) -- Ganti kalau koordinat beda
 	end
+end)
+
+--// 💤 Anti-AFK
+makeButton("🛡️ Aktifkan Anti-AFK", 110, function()
+	local vu = game:GetService("VirtualUser")
+	game:GetService("Players").LocalPlayer.Idled:Connect(function()
+		vu:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+		task.wait(1)
+		vu:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+	end)
+end)
+
+--// ❌ Hapus GUI
+makeButton("❌ Tutup GUI", 160, function()
+	ScreenGui:Destroy()
 end)
